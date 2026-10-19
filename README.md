@@ -93,7 +93,7 @@ Entre com o usuário do grupo. Na primeira vez o painel cria 4 tarefas de **exem
 
 ## Ligação elétrica
 
-Igual à versão com servidor próprio (optoacoplador nos GPIO 25/26). **Atenção:** a leitura envolve a tensão do motor (127/220/380 V). A instalação deve ser feita ou revisada por eletricista/técnico qualificado, com a máquina desenergizada, e o ESP32 nunca deve ser ligado direto à rede. Detalhes e opções de ligação estão no README da versão com servidor (`horimetro-torno/README.md`).
+**Atenção:** a leitura envolve a tensão do motor (127/220/380 V). A instalação deve ser feita ou revisada por eletricista/técnico qualificado, com a máquina desenergizada, e o ESP32 nunca deve ser ligado direto à rede.
 
 ## Limites do plano gratuito e custo de uso
 
@@ -118,4 +118,4 @@ Observações:
 
 ## Roteiro de testes
 
-Use o mesmo roteiro do arquivo `trechos_relatorio_PI4.md` (detecção, precisão, inversão de sentido, perda de rede, queda de energia, alertas e usabilidade). Para o teste de perda de rede, desligue o Wi-Fi durante uma sessão e confira no Firestore que o documento em `sessions` aparece quando a rede volta.
+Use o roteiro (detecção, precisão, inversão de sentido, perda de rede, queda de energia, alertas e usabilidade). Para o teste de perda de rede, desligue o Wi-Fi durante uma sessão e confira no Firestore que o documento em `sessions` aparece quando a rede volta.

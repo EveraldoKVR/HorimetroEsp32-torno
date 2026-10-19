@@ -7,20 +7,20 @@
 // --- Wi-Fi (configurado pelo WiFiManager, somente rede 2,4 GHz) ---
 // conecte-se a ela pelo celular e escolha a rede da oficina na página que abrir.
 #define PORTAL_AP_NAME       "Horimetro-Setup" //SSID para configuração da rede de Wi-Fi (parecido com a de um roteador)
-#define PORTAL_AP_PASS       "horimetropi4"   // Senha para acessar a configuração do Wi-Fi
+#define PORTAL_AP_PASS       "horimetro123"   // Senha para acessar a configuração do Wi-Fi
 #define PORTAL_TIMEOUT_S     180              // O portal fecha sozinho após este tempo (3 minutos)
 #define PIN_CONFIG_BTN       0                // Botão BOOT da placa
 #define CONFIG_BTN_HOLD_MS   5000             // Segure o botão por 5 s para trocar de rede Wi-Fi
 
 // --- Firebase ---
-#define FIREBASE_API_KEY     "AIzaSyC1CKcoEmC4jmQbkHB9RSZOxkLnkkM8ICc"
-#define FIREBASE_PROJECT_ID  "horimetro-pi4"
+#define FIREBASE_API_KEY     "###"  // API Key do projeto Firebase
+#define FIREBASE_PROJECT_ID  "###"  // ID do projeto Firebase
 
 // Definição do usuário e senha que o ESP32 usará para acessar o firebase
-#define DEVICE_EMAIL     "esp32.torno@pi4.com"
-#define DEVICE_PASSWORD  "Esp32pi4"
+#define DEVICE_EMAIL     "###"  // Email do dispositivo
+#define DEVICE_PASSWORD  "###"  // Senha do dispositivo
 
-#define DEVICE_ID        "torno-ms175"
+#define DEVICE_ID        "###"  // ID do dispositivo (gerado pelo Firebase)
 
 
 //Definição dos pinos usados na placa para fazer as leituras
