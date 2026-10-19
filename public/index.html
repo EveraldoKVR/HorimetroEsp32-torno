@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Horímetro — Torno 1 Nardini MS175</title>
+<style>
+  :root {
+    --paper: #E8EBE6;
+    --panel: #F6F7F4;
+    --ink: #1B2420;
+    --muted: #5B675F;
+    --line: #C9CFC7;
+    --machine: #2E5A4C;
+    --machine-ink: #FFFFFF;
+    --ok: #2E5A4C;
+    --warn: #B27300;
+    --alarm: #B3261E;
+    --meter-bg: #15191A;
+    --meter-digit: #F2EFE6;
+    --meter-tenth: #A8281F;
+    --font: "Bahnschrift", "DIN Alternate", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #121714;
+      --panel: #1B221E;
+      --ink: #E6EAE4;
+      --muted: #97A39B;
+      --line: #2F3A34;
+      --machine: #6FB39B;
+      --machine-ink: #0E1411;
+      --ok: #6FB39B;
+      --warn: #E3A63A;
+      --alarm: #F0776E;
+      --meter-bg: #0B0E0D;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--paper); }
+  body {
+    margin: 0; color: var(--ink); background: var(--paper);
+    font: 16px/1.5 var(--font);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible { outline: 3px solid var(--machine); outline-offset: 2px; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 24px 16px 56px; }
+
+  header { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  h1 { font-size: 1.35rem; font-weight: 600; margin: 0; letter-spacing: .01em; }
+  h1 small { display: block; font-size: .875rem; font-weight: 400; color: var(--muted); }
+  h2 { font-size: 1.05rem; font-weight: 600; margin: 0 0 12px; }
+
+  .status { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--panel); font-weight: 600; font-size: .9rem; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
+  .status.running .dot { background: var(--ok); animation: pulse 1.6s ease-in-out infinite; }
+  .status.offline .dot { background: var(--alarm); }
+  @keyframes pulse { 50% { opacity: .35; } }
+  @media (prefers-reduced-motion: reduce) { .status.running .dot { animation: none; } }
+
+  .banner { border: 1.5px solid var(--alarm); border-left-width: 6px; background: var(--panel); padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; }
+  .banner.warn { border-color: var(--warn); }
+  .banner strong { display: block; }
+  .banner[hidden] { display: none; }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 20px; }
+
+  /* Horímetro */
+  .hero { display: grid; grid-template-columns: auto 1fr; gap: 24px 40px; align-items: center; margin-bottom: 20px; }
+  .meter-label { color: var(--muted); font-size: .875rem; margin-bottom: 8px; }
+  .odometer { display: inline-flex; gap: 3px; padding: 8px; background: #000; border-radius: 6px; border: 2px solid #3a403d; box-shadow: inset 0 2px 6px rgba(0,0,0,.8); }
+  .digit { width: clamp(30px, 7vw, 52px); height: clamp(48px, 11vw, 78px); display: grid; place-items: center; background: var(--meter-bg); color: var(--meter-digit); font-size: clamp(1.9rem, 5.5vw, 3.2rem); font-weight: 600; font-variant-numeric: tabular-nums; border-radius: 3px; background-image: linear-gradient(to bottom, rgba(255,255,255,.07), transparent 45%, rgba(0,0,0,.45)); }
+  .digit.tenth { background-color: var(--meter-tenth); }
+  .odometer .unit { align-self: end; padding: 0 6px 6px; color: var(--meter-digit); font-size: .9rem; }
+  .session-live { margin-top: 10px; font-size: .9rem; color: var(--muted); min-height: 1.4em; }
+
+  .usage { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .usage div { border-left: 3px solid var(--machine); padding-left: 12px; }
+  .usage dt { color: var(--muted); font-size: .85rem; }
+  .usage dd { margin: 0; font-size: 1.6rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; align-items: start; }
+  .stack { display: grid; gap: 20px; }
+
+  /* Manutenção */
+  .panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+  .task { padding: 14px 0; border-top: 1px solid var(--line); }
+  .task:first-of-type { border-top: 0; }
+  .task-top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+  .task-name { font-weight: 600; }
+  .task-desc { color: var(--muted); font-size: .85rem; margin: 2px 0 8px; }
+  .bar { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; }
+  .bar > span { display: block; height: 100%; background: var(--ok); border-radius: 5px; }
+  .task.warning .bar > span { background: var(--warn); }
+  .task.overdue .bar > span { background: var(--alarm); }
+  .task-meta { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 8px; font-size: .9rem; }
+  .task.warning .when { color: var(--warn); font-weight: 600; }
+  .task.overdue .when { color: var(--alarm); font-weight: 600; }
+  .actions { display: flex; gap: 8px; }
+
+  button, .btn { font: inherit; font-size: .875rem; cursor: pointer; border-radius: 6px; padding: 6px 12px; border: 1.5px solid var(--machine); background: var(--machine); color: var(--machine-ink); font-weight: 600; }
+  button.ghost { background: transparent; color: var(--machine); }
+  button.danger { background: transparent; border-color: var(--alarm); color: var(--alarm); }
+
+  /* Gráfico e tabelas */
+  svg.chart { width: 100%; height: auto; display: block; }
+  svg.chart .bar-rect { fill: var(--machine); }
+  svg.chart text { fill: var(--muted); font-size: 10px; font-family: var(--font); }
+  svg.chart line { stroke: var(--line); }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th { text-align: left; font-weight: 600; color: var(--muted); padding: 6px 0; border-bottom: 1px solid var(--line); }
+  td { padding: 6px 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  td:last-child, th:last-child { text-align: right; }
+  .empty { color: var(--muted); font-size: .9rem; margin: 8px 0 0; }
+
+  dialog { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--ink); padding: 20px; width: min(440px, calc(100vw - 32px)); }
+  dialog::backdrop { background: rgba(0,0,0,.45); }
+  label { display: block; font-size: .875rem; font-weight: 600; margin: 12px 0 4px; }
+  input, textarea { width: 100%; font: inherit; padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); }
+  .dlg-actions { display: flex; gap: 8px; justify-content: space-between; margin-top: 20px; }
+  .dlg-actions .right { display: flex; gap: 8px; }
+  .err { color: var(--alarm); font-size: .875rem; min-height: 1.3em; margin: 8px 0 0; }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 8px; font-size: .9rem; }
+  .toast[hidden] { display: none; }
+
+  .head-right { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .hint { color: var(--muted); font-size: .85rem; margin: 0 0 4px; }
+
+  @media (max-width: 800px) {
+    .hero { grid-template-columns: 1fr; }
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Torno 1 Nardini Mascote MS175<small id="deviceInfo">Aguardando dados do ESP32…</small></h1>
+    <div class="head-right">
+      <div id="status" class="status offline"><span class="dot"></span><span id="statusText">Sem conexão</span></div>
+      <button class="ghost" id="logout" hidden>Sair</button>
+    </div>
+  </header>
+
+  <div id="banner" class="banner" hidden role="alert"></div>
+
+  <section class="panel hero" aria-label="Horas de uso">
+    <div>
+      <div class="meter-label">Horas totais de funcionamento</div>
+      <div class="odometer" id="odometer" role="img" aria-label="Horas totais"></div>
+      <div class="session-live" id="sessionLive"></div>
+    </div>
+    <dl class="usage">
+      <div><dt>Hoje</dt><dd id="hToday">–</dd></div>
+      <div><dt>Esta semana</dt><dd id="hWeek">–</dd></div>
+      <div><dt>Este mês</dt><dd id="hMonth">–</dd></div>
+    </dl>
+  </section>
+
+  <div class="grid">
+    <section class="panel" aria-label="Manutenção">
+      <div class="panel-head">
+        <h2>Plano de manutenção</h2>
+        <button class="ghost" id="addTask">Nova tarefa</button>
+      </div>
+      <div id="tasks"></div>
+    </section>
+
+    <div class="stack">
+      <section class="panel" aria-label="Uso diário">
+        <h2>Uso nos últimos 30 dias (horas por dia)</h2>
+        <div id="chart"></div>
+      </section>
+
+      <section class="panel" aria-label="Últimas sessões">
+        <h2>Últimas sessões de uso</h2>
+        <div id="sessions"></div>
+      </section>
+
+      <section class="panel" aria-label="Histórico de manutenção">
+        <h2>Manutenções registradas</h2>
+        <div id="log"></div>
+      </section>
+
+      <section class="panel" aria-label="Ajustes">
+        <h2>Horas iniciais</h2>
+        <p class="task-desc">Horas que o torno já tinha antes da instalação do sistema. Entram no total.</p>
+        <button class="ghost" id="editOffset">Alterar horas iniciais</button>
+      </section>
+    </div>
+  </div>
+</div>
+
+<dialog id="taskDlg">
+  <form method="dialog" id="taskForm">
+    <h2 id="taskDlgTitle">Nova tarefa</h2>
+    <label for="fName">Nome</label>
+    <input id="fName" required maxlength="80">
+    <label for="fDesc">Descrição</label>
+    <textarea id="fDesc" rows="2" maxlength="300"></textarea>
+    <label for="fInterval">Intervalo (horas de uso)</label>
+    <input id="fInterval" type="number" min="0.1" step="any" required>
+    <label for="fWarn">Avisar a partir de (% do intervalo)</label>
+    <input id="fWarn" type="number" min="1" max="99" step="1" value="90" required>
+    <p class="err" id="taskErr" role="alert"></p>
+    <div class="dlg-actions">
+      <button type="button" class="danger" id="fDelete">Excluir tarefa</button>
+      <div class="right">
+        <button type="button" class="ghost" id="fCancel">Cancelar</button>
+        <button type="submit" id="fSave">Salvar</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="doneDlg">
+  <form method="dialog" id="doneForm">
+    <h2 id="doneTitle">Registrar manutenção</h2>
+    <p class="task-desc">O contador desta tarefa volta a zero a partir das horas atuais.</p>
+    <label for="dNote">Observação (opcional)</label>
+    <input id="dNote" maxlength="300">
+    <p class="err" id="doneErr" role="alert"></p>
+    <div class="dlg-actions">
+      <span></span>
+      <div class="right">
+        <button type="button" class="ghost" id="dCancel">Cancelar</button>
+        <button type="submit">Registrar</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="loginDlg">
+  <form id="loginForm">
+    <h2>Entrar no painel</h2>
+    <p class="hint">Use o e-mail e a senha cadastrados no Firebase Authentication.</p>
+    <label for="lEmail">E-mail</label>
+    <input id="lEmail" type="email" autocomplete="username" required>
+    <label for="lPass">Senha</label>
+    <input id="lPass" type="password" autocomplete="current-password" required>
+    <p class="err" id="loginErr" role="alert"></p>
+    <div class="dlg-actions">
+      <span></span>
+      <div class="right"><button type="submit">Entrar</button></div>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" hidden></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
